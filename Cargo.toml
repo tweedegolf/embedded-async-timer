@@ -1,0 +1,28 @@
+[package]
+authors = ["Wouter Geraedts <git@woutergeraedts.nl>"]
+edition = "2018"
+readme = "README.md"
+name = "embedded-async-timer"
+version = "0.1.0"
+
+[features]
+# default = ["stm32l4x6"]
+default = ["stm32f103"]
+
+stm32f103 = ["stm32f1xx-hal/stm32f103", "cortex-m"]
+stm32l4x6 = ["stm32l4xx-hal/stm32l4x6", "cortex-m"]
+
+[dependencies]
+arraydeque = { version = "0.4.5", default-features = false }
+bare-metal = "0.2.5"
+cortex-m = { version = "0.6.2", optional = true }
+
+[dependencies.stm32f1xx-hal]
+version = "0.5.3"
+features = ["rt"]
+optional = true
+
+[dependencies.stm32l4xx-hal]
+version = "0.5.0"
+features = []
+optional = true
