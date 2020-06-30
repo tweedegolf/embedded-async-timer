@@ -4,6 +4,11 @@ edition = "2018"
 readme = "README.md"
 name = "embedded-async-timer"
 version = "0.1.0"
+description = "Async timers for embedded devices"
+repository = "https://github.com/tweedegolf/embedded-async-timer"
+license = "MIT"
+keywords = ["embedded", "async", "timer", "hal"]
+categories = ["asynchronous", "embedded", "no-std"]
 
 [features]
 # default = ["stm32l4x6"]
@@ -26,3 +31,6 @@ optional = true
 version = "0.5.0"
 features = []
 optional = true
+
+[package.metadata.docs.rs]
+all-features = true

@@ -1,4 +1,4 @@
-//! AsyncTimer implementation for the Rtc peripheral in the STM32F103 running at 1Khz.
+//! A simple AsyncTimer implementation for the Rtc peripheral in the STM32F103 running at 1kHz.
 
 use bare_metal::CriticalSection;
 use core::sync::atomic::{self, Ordering};
@@ -50,21 +50,12 @@ impl Timer for Rtc {
     type Instant = InstantU32;
     type Duration = DurationU32;
 
-    const DELTA: DurationU32 = DurationU32(1);
+    const DELTA: DurationU32 = DurationU32(2);
 
     fn reset(&mut self) {
+        unsafe { NVIC::unmask(Interrupt::RTC) }
         self.select_frequency((TICKS_PER_SECOND as u32).hz());
         self.set_time(0);
-    }
-
-    #[inline(always)]
-    fn unmask() {
-        unsafe { NVIC::unmask(Interrupt::RTC) }
-    }
-
-    #[inline(always)]
-    fn mask() {
-        NVIC::mask(Interrupt::RTC)
     }
 
     #[inline(always)]
@@ -79,10 +70,8 @@ impl Timer for Rtc {
 
     #[inline(always)]
     fn disarm(&mut self) {
-        Self::mask();
         self.unlisten_alarm();
         self.clear_alarm_flag();
-        atomic::compiler_fence(Ordering::Release);
     }
 
     #[inline(always)]
@@ -90,8 +79,6 @@ impl Timer for Rtc {
         // Assumes the alarm was already disarmed.
         self.set_alarm(deadline.0);
         self.clear_alarm_flag();
-        atomic::compiler_fence(Ordering::Release);
-        Self::unmask();
         self.listen_alarm();
     }
 }

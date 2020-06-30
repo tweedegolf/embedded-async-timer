@@ -2,7 +2,7 @@
 //!
 //! You will need to properly instantiate the peripheral yourself, and register the appropriate interrupt.
 //! The timer will require a `'static` lifetime to be accessible in the interrupt,
-//! if not using the RTFM crate or similar.
+//! if not using the RTIC crate or similar.
 //!
 //! You can implement Timer for a Peripheral yourself. Please use these implementations
 //! for reference on how to do this, and refer to the documentation of the Timer trait.
