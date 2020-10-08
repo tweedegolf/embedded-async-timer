@@ -11,15 +11,45 @@
 //!
 //! **Warning**: time will not observably progress (from `get_time()`) unless interrupts are handled.
 //!
-//! ```
-//! let p = stm32l4xx_hal::stm32::Peripherals::take().unwrap();
-//! let timer = AsyncTimer::new(Lptim1Rtc::new(p.LPTIM1, &p.RCC)));
-//! let mut flash = p.FLASH.constrain();
-//! let mut rcc = p.RCC.constrain();
-//! rcc.cfgr.lsi(true).freeze(&mut flash.acr);
-//!```
+//! A minimal example:
 //!
-//! Do not forget to call `handle_interrupt` in the interrupt handler for `LPTIM1`.
+//! ```
+//! static mut TIMER: Option<AsyncTimer<Lptim1Rtc>> = None;
+//!
+//! #[interrupt]
+//! #[allow(non_snake_case)]
+//! #[no_mangle]
+//! fn LPTIM1() {
+//!     cortex_m::interrupt::free(|_| {
+//!         if let Some(timer) = unsafe { TIMER.as_ref() } {
+//!             handle_interrupt(move || timer);
+//!         }
+//!     })
+//! }
+//!
+//! #[entry]
+//! fn main() -> ! {
+//!     let p = stm32l4xx_hal::stm32::Peripherals::take().unwrap();
+//!     unsafe { TIMER.replace(AsyncTimer::new(Lptim1Rtc::new(p.LPTIM1, &p.RCC))) };
+//!     let timer = unsafe { TIMER.as_ref().unwrap() };
+//!     timer.reset() // Get it started.
+//!     let mut flash = p.FLASH.constrain();
+//!     let mut rcc = p.RCC.constrain();
+//!     rcc.cfgr.lsi(true).freeze(&mut flash.acr);
+//!
+//!     async {
+//!         let timer = AsyncTimer::new(rtc);
+//!         timer.wait(Duration::from_millis(500).into()).await;
+//!
+//!         let mut interval = Interval::new(Duration::from_secs(1).into(), &timer);
+//!
+//!         loop {
+//!             interval.wait(&timer).await;
+//!             println!("ping");
+//!         }
+//!     }
+//! }
+//! ```
 
 use crate::{AsyncTimer, Timer};
 use core::num::NonZeroU32;
@@ -135,7 +165,7 @@ impl Lptim1Rtc {
         self.inner.arr.write(|w| unsafe { w.bits(ALARM_ARR) });
         self.set_cmp(ALARM_DIRTY_ZONE);
 
-        // Await until it is configured.
+        // Wait until it is configured.
         compiler_fence(Ordering::SeqCst);
 
         self.inner.cr.modify(|_, w| w.cntstrt().set_bit());
