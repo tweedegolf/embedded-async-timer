@@ -111,7 +111,7 @@ pub trait Timer {
     ///
     /// You will probably want to make this type as close to your Instant type as possible,
     /// with a focus on making addition and storage efficient.
-    type Duration: Clone;
+    type Duration: Clone + From<core::time::Duration>;
     /// A moment in time.
     ///
     /// You will probably make this type as close to the internal representation of an instant
@@ -284,6 +284,11 @@ impl<T: Timer> AsyncTimer<T> {
     #[inline(always)]
     pub fn wait<'a>(&'a self, dur: T::Duration) -> Result<Delay<'a, T>, CapacityError> {
         self.wait_until_always(future(self.now(), dur))
+    }
+
+    #[inline(always)]
+    pub fn delay_ms<'a>(&'a self, millis: u64) -> Result<Delay<'a, T>, CapacityError> {
+        self.wait(core::time::Duration::from_millis(millis).into())
     }
 
     /// Wait until some time after a specific deadline.
