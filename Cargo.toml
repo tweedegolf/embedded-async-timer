@@ -28,7 +28,7 @@ features = ["rt"]
 optional = true
 
 [dependencies.stm32l4xx-hal]
-version = "0.5.0"
+version = "0.6.0"
 features = []
 optional = true
 
